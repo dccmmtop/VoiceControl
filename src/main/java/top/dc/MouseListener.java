@@ -11,11 +11,14 @@ import org.jnativehook.mouse.NativeMouseInputListener;
 import org.jnativehook.mouse.NativeMouseWheelEvent;
 import org.jnativehook.mouse.NativeMouseWheelListener;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MouseListener {
     static boolean down = false;
+    static int downNum = 0;
     public static void main(String[] args) {
         try {
             Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
@@ -54,6 +57,12 @@ public class MouseListener {
                 // 处理鼠标按下事件
                 if(e.getButton() == MouseButton.SECONDARY.ordinal()){
                     MouseListener.down = true;
+                    MouseListener.downNum ++;
+                    // 500 毫秒内连续双击鼠标中键，切换静音和非静音
+                    setTimeout(() -> { MouseListener.downNum = 0; },500);
+                    if(MouseListener.downNum == 2){
+                        VolumeControl.controlSystemVolume("0");
+                    }
                 }
             }
 
@@ -73,5 +82,15 @@ public class MouseListener {
                 // 处理鼠标拖拽事件
             }
         });
+    }
+    public static void setTimeout(Runnable runnable, int delay) {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runnable.run();
+                timer.cancel();
+            }
+        }, delay);
     }
 }
